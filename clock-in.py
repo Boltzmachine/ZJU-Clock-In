@@ -3,7 +3,6 @@
 # 打卡脚修改自ZJU-nCov-Hitcarder的开源代码，感谢这位同学开源的代码
 
 import os
-from argon2 import verify_password
 import requests
 import json
 import re
