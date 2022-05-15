@@ -84,7 +84,7 @@ class ClockIn(object):
                 img_bytes = f.read()
             verifyCode = ocr.classification(img_bytes)
             os.remove('codeImg.png')
-            old_infos = re.findall(r'var def = ({[^\n]+})', html)
+            old_infos = re.findall(r'oldInfo: ({[^\n]+})', html)
             if len(old_infos) != 0:
                 old_info = json.loads(old_infos[0])
             else:
