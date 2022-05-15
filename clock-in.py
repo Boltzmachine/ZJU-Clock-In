@@ -2,12 +2,15 @@
 
 # 打卡脚修改自ZJU-nCov-Hitcarder的开源代码，感谢这位同学开源的代码
 
+import os
+from argon2 import verify_password
 import requests
 import json
 import re
 import datetime
 import time
 import sys
+import ddddocr
 
 
 class ClockIn(object):
@@ -25,6 +28,7 @@ class ClockIn(object):
     LOGIN_URL = "https://zjuam.zju.edu.cn/cas/login?service=https%3A%2F%2Fhealthreport.zju.edu.cn%2Fa_zju%2Fapi%2Fsso%2Findex%3Fredirect%3Dhttps%253A%252F%252Fhealthreport.zju.edu.cn%252Fncov%252Fwap%252Fdefault%252Findex"
     BASE_URL = "https://healthreport.zju.edu.cn/ncov/wap/default/index"
     SAVE_URL = "https://healthreport.zju.edu.cn/ncov/wap/default/save"
+    CODE_URL = "https://healthreport.zju.edu.cn/ncov/wap/default/code"
     HEADERS = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"
     }
@@ -73,12 +77,20 @@ class ClockIn(object):
             html = res.content.decode()
 
         try:
-            old_infos = re.findall(r'oldInfo: ({[^\n]+})', html)
+            r = self.sess.request(url=self.CODE_URL,method='get',headers=self.HEADERS)
+            with open('codeImg.png', 'wb') as f:
+                f.write(r.content)
+            ocr = ddddocr.DdddOcr()
+            with open('codeImg.png', 'rb') as f:
+                img_bytes = f.read()
+            verifyCode = ocr.classification(img_bytes)
+            os.remove('codeImg.png')
+            old_infos = re.findall(r'var def = ({[^\n]+})', html)
             if len(old_infos) != 0:
                 old_info = json.loads(old_infos[0])
             else:
                 raise RegexMatchError("未发现缓存信息，请先至少手动成功打卡一次再运行脚本")
-
+            
             new_info_tmp = json.loads(re.findall(r'def = ({[^\n]+})', html)[0])
             new_id = new_info_tmp['id']
             name = re.findall(r'realname: "([^\"]+)",', html)[0]
@@ -107,11 +119,14 @@ class ClockIn(object):
         new_info['jcqzrq'] = ""
         new_info['gwszdd'] = ""
         new_info['szgjcs'] = ""
+        new_info['verifyCode'] = verifyCode
 
         # 2021.08.05 Fix 2
         magics = re.findall(r'"([0-9a-f]{32})":\s*"([^\"]+)"', html)
         for item in magics:
             new_info[item[0]] = item[1]
+            
+
 
         self.info = new_info
         return new_info
