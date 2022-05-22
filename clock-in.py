@@ -76,14 +76,14 @@ class ClockIn(object):
             html = res.content.decode()
 
         try:
-            r = self.sess.request(url=self.CODE_URL,method='get',headers=self.HEADERS)
-            with open('codeImg.png', 'wb') as f:
-                f.write(r.content)
-            ocr = ddddocr.DdddOcr()
-            with open('codeImg.png', 'rb') as f:
-                img_bytes = f.read()
-            verifyCode = ocr.classification(img_bytes)
-            os.remove('codeImg.png')
+            # r = self.sess.request(url=self.CODE_URL,method='get',headers=self.HEADERS)
+            # with open('codeImg.png', 'wb') as f:
+            #     f.write(r.content)
+            # ocr = ddddocr.DdddOcr()
+            # with open('codeImg.png', 'rb') as f:
+            #     img_bytes = f.read()
+            # verifyCode = ocr.classification(img_bytes)
+            # os.remove('codeImg.png')
             old_infos = re.findall(r'oldInfo: ({[^\n]+})', html)
             if len(old_infos) != 0:
                 old_info = json.loads(old_infos[0])
@@ -118,7 +118,7 @@ class ClockIn(object):
         new_info['jcqzrq'] = ""
         new_info['gwszdd'] = ""
         new_info['szgjcs'] = ""
-        new_info['verifyCode'] = verifyCode
+        # new_info['verifyCode'] = verifyCode
 
         # 2021.08.05 Fix 2
         magics = re.findall(r'"([0-9a-f]{32})":\s*"([^\"]+)"', html)
